@@ -1,13 +1,47 @@
-UnobtrusiveUploadProgress
-=========================
+= Unobtrusive Upload Progress for Rails with Mongrel
 
-Introduction goes here.
+Upload progress is messy and often doesn't handle validations very
+well.  This plugin aims to provide a transparent way to add upload
+progress to your forms by only adding an extra HTML class to a form
+tag.
 
 
-Example
-=======
+== Installation
 
-Example goes here.
+This code is packaged as a Rails plugin;
+
+  ruby script/plugin install git://github.com/remvee/unobtrusive_upload_progress.git
+
+The installation hook will copy a JavaScript file into your
++public/javascripts+ directory.  I'll need to include it in your views
+using +javascript_include_tag+ or something simular.
+
+After installing the plugin you'll need to setup a Mongrel
+configuration script to add the following +uri+ mappings:
+
+  uri '/', :handler => ::UploadProgress::MonitorHandler.new, :in_front => true
+  uri '/upload_progress', :handler => ::UploadProgress::StatusHandler.new
+
+The first will sit before all request to Rails actions and record
+upload progress when a request comes by which includes the +upload_id+
+parameter in the query-string (on the URL).  The other handler will
+provide the status of a given +upload_id+ in JSON format.
+
+
+== Layout
+
+Add the following to the head section of HTML in your layouts:
+
+  <%= javascript_include_tag 'upload_progress' if UploadProgress.monitor_loaded? %>
+
+
+== Forms
+
+Simply add the "upload_progress" class to the forms you want to have
+upload progress.  Note the progress bar will kick in when the submit
+takes longer than 2 seconds.
+
+
 
 
 Copyright (c) 2008 R.W. van 't Veer, released under the MIT license

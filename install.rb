@@ -1,4 +1,4 @@
-puts "Copying JavaScript to public/javascripts/upload_progress.js.."
+puts "\n\nCopying JavaScript to public/javascripts/upload_progress.js.."
 FileUtils.cp File.dirname(__FILE__) + '/javascripts/upload_progress.js', "#{RAILS_ROOT}/public/javascripts"
 
 puts %q{
