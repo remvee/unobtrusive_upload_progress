@@ -1,9 +1,22 @@
 = Unobtrusive Upload Progress for Rails with Mongrel
 
-Upload progress is messy and often doesn't handle validations very
-well.  This plugin aims to provide a transparent way to add upload
-progress to your forms by only adding an extra HTML class to a form
-tag.
+Upload progress is messy, especially when you want to handle
+validations errors as well.  This plugin aims to provide a transparent
+way to add upload progress to your forms by only adding an extra HTML
+class to a form tag.
+
+
+== Unobtrusive
+
+This plugin tries to be as unobstrusive as possible.  It's pretty easy
+to setup; just add two mongrel handlers.  Your forms will not break
+when the progress monitor is't available and uploads still work when
+the user has turned of JavaScript.
+
+
+== Requirements
+
+This plugin depends on prototype.js and Mongrel.
 
 
 == Installation
@@ -13,7 +26,7 @@ This code is packaged as a Rails plugin;
   ruby script/plugin install git://github.com/remvee/unobtrusive_upload_progress.git
 
 The installation hook will copy a JavaScript file into your
-+public/javascripts+ directory.  I'll need to include it in your views
+public/javascripts directory.  I'll need to include it in your views
 using +javascript_include_tag+ or something simular.
 
 After installing the plugin you'll need to setup a Mongrel
@@ -42,6 +55,45 @@ upload progress.  Note the progress bar will kick in when the submit
 takes longer than 2 seconds.
 
 
+== How does it work?
+
+When one of your pages is loaded into the browser, the provided
+JavaScript will look for a form on the page which is a candidate for
+an upload progress bar.  If such a form is found, an invisible div-tag
+with id +upload_progress_status+ and iframe are added.  The form is
+altered slightly by adding an extra parameter with an uniq identifier
+to the form action, setting the form target to the introduced iframe
+and hooking up a handler to the submit event.
+
+When the user hits the submit button the submit event handler kicks
+off a series of Ajax requests which uses the same identifier as the
+one added to the form action location to fetch the status of the
+upload form the status handler in Mongrel.  These updates are used to
+update the progress bar.
+
+Meanwhile the monitor handler in Mongrel should have detected an
+upload because it saw a request pass with the special parameter.  It
+will record progress for the associated identifier to be served by the
+status handler.
+
+When the upload is finished the iframe will be examined.  When the
+location is different than the form action the user submitted, the
+upload is considered successful (typical redirect on successful
+update/create action) and the top frame location is replaced by the
+one the iframe got.  When the location didn't change there's probably
+an validation error visible in the form and the form contents
+(+innerHTML+) in the iframe is copied into the visible form in the top
+frame.
+
+
+== Does it work for me?
+
+As long as you deploy your application using Mongrel (or a cluster of
+Mongrels) and your forms are pretty basic; re-rending the same form on
+validation errors, including all error messages inside the form and
+redirecting on success like Rails scaffolding does, this plugin will
+be fine for you.  Otherwise the you'll probably need to rewrite some
+of the included JavaScript code.
 
 
 Copyright (c) 2008 R.W. van 't Veer, released under the MIT license
