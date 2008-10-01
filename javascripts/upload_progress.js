@@ -69,10 +69,16 @@ if (self == self.top) {
       form.action = url + (url.match(/\?/) ? '&' : '?') + 'upload_progress_id=' + UploadProgress.upload_progress_id
     },
 
-    // Find first form with "upload_progress" class.
+    // Find first multipart/form-data form with a file input.
     findForm: function(forms) {
       for (var i = 0; i < forms.length; i++) {
-        if (forms[i].className == 'upload_progress') return forms[i]
+        var f = forms[i]
+        if (f.enctype == 'multipart/form-data') {
+          for (var j = 0; j < f.elements.length; j++) {
+            var e = f.elements[j]
+            if (e.type == 'file') return f
+          }
+        }
       }
       return null
     },
