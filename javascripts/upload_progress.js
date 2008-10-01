@@ -23,7 +23,7 @@ if (self == self.top) {
 
     // Updater is kicked off on submit and keeps running every second until status indicates upload is finished.
     updater: function progress(form) {
-      new Ajax.Request('/upload_progress?upload_id=' + UploadProgress.upload_id, {
+      new Ajax.Request('/upload_progress?' + UploadProgress.upload_progress_id, {
         onSuccess: function(transport) {
           var status = transport.responseJSON
 
@@ -61,12 +61,12 @@ if (self == self.top) {
       return url.replace(/^[a-z]+:\/\/[^\/]+\//, '/')
     },
 
-    // Add refresh upload_id to form.action.
+    // Add refresh upload_progress_id to form.action.
     updateUploadId: function(form) {
       var url = form.action
-      url = url.replace(/\bupload_id=[^&]+/, '').replace(/\?$/, '')
-      UploadProgress.upload_id = new Date().getTime()
-      form.action = url + (url.match(/\?/) ? '&' : '?') + 'upload_id=' + UploadProgress.upload_id
+      url = url.replace(/\bupload_progress_id=[^&]+/, '').replace(/\?$/, '')
+      UploadProgress.upload_progress_id = new Date().getTime()
+      form.action = url + (url.match(/\?/) ? '&' : '?') + 'upload_progress_id=' + UploadProgress.upload_progress_id
     },
 
     // Find first form with "upload_progress" class.

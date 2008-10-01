@@ -36,9 +36,10 @@ configuration script to add the following +uri+ mappings:
   uri '/upload_progress', :handler => ::UploadProgress::StatusHandler.new
 
 The first will sit before all request to Rails actions and record
-upload progress when a request comes by which includes the +upload_id+
-parameter in the query-string (on the URL).  The other handler will
-provide the status of a given +upload_id+ in JSON format.
+upload progress when a request comes by which includes the
++upload_progress_id+ parameter in the query-string (on the URL).  The
+other handler will provide the status of a given +upload_progress_id+
+in JSON format.
 
 
 == Layout
