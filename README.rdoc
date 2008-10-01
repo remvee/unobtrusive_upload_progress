@@ -16,7 +16,7 @@ the user has turned of JavaScript.
 
 == Requirements
 
-This plugin depends on prototype.js and Mongrel.
+This plugin depends on prototype.js 1.6 and Mongrel.
 
 
 == Installation
