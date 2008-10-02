@@ -60,11 +60,10 @@ takes longer than 2 seconds.
 
 When one of your pages is loaded into the browser, the provided
 JavaScript will look for a form on the page which is a candidate for
-an upload progress bar.  If such a form is found, an invisible div-tag
-with id +upload_progress_status+ and iframe are added.  The form is
-altered slightly by adding an extra parameter with an uniq identifier
-to the form action, setting the form target to the introduced iframe
-and hooking up a handler to the submit event.
+an upload progress bar.  If such a form is found an iframe are added.
+The form is altered slightly by adding an extra parameter with an uniq
+identifier to the form action, setting the form target to the
+introduced iframe and hooking up a handler to the submit event.
 
 When the user hits the submit button the submit event handler kicks
 off a series of Ajax requests which uses the same identifier as the

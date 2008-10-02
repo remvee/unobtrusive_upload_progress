@@ -6,7 +6,6 @@ if (self == self.top) {
       var form = UploadProgress.findForm(window.document.forms)
 
       if (form) {
-        $(window.document.body).insert({top: '<div id="upload_progress_status" style="display:none"></div>'})
         $(window.document.body).insert({bottom: '<iframe id="upload_hole" name="upload_hole" src="about:blank" style="display:none"></iframe>'})
 
         UploadProgress.updateUploadId(form)
@@ -86,7 +85,11 @@ if (self == self.top) {
     // Show status indicator, called when upload started.
     onStart: function() {
       Position.prepare()
+      if (!$('upload_progress_status')) {
+        $(window.document.body).insert({top: '<div id="upload_progress_status" style="background:red;text-align:right;color:white;font-style:bold;padding:4px"></div>'})
+      }
       $('upload_progress_status').setStyle({display: 'block', position: 'absolute', width: 0, top: Position.deltaY + 10 + 'px'})
+
       new Effect.Opacity('upload_progress_status', {from: 0.0, to: 0.75})
     },
 
