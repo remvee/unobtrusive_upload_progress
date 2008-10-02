@@ -1,10 +1,3 @@
-* customize:
-** UploadProgress.register('start', function..)
-** UploadProgress.register('update', function..)
-** UploadProgress.register('finish', function..)
-* decorate all form[enctype=multipart/form-data] containing input[type=file]
-* less obvious param name to prevent clashes
-* status handler should get id from query-string directory
 * documentation
 ** who to trick mongrel in to slowing down uploads for testing
 ** UploadProgress.cleanup should be cronned (or whatever)

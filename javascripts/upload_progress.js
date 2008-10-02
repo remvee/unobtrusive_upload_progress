@@ -14,7 +14,7 @@ if (self == self.top) {
         Event.observe(form, 'submit', function() {
           UploadProgress.submitTimeout = setTimeout(function() {
             UploadProgress.updater(form)
-            UploadProgress.onStart()
+            UploadProgress.onStart(form)
           }, 2000)
         })
       }
@@ -28,7 +28,7 @@ if (self == self.top) {
 
           if (status) {
             status.percentage = Math.round(100 - (status.remaining / status.total * 100))
-            UploadProgress.onUpdate(status)
+            UploadProgress.onUpdate(form, status)
           }
 
           if (!status || status.remaining != 0) {
@@ -49,7 +49,7 @@ if (self == self.top) {
       if (upload_location == action_location) {
         form.innerHTML = UploadProgress.findForm(window.upload_hole.document.forms).innerHTML
         UploadProgress.updateUploadId(form)
-        UploadProgress.onFinished()
+        UploadProgress.onFinish(form)
       } else {
         window.location.href = window.upload_hole.location.href
       }
@@ -82,27 +82,46 @@ if (self == self.top) {
       return null
     },
 
-    // Show status indicator, called when upload started.
-    onStart: function() {
-      Position.prepare()
-      if (!$('upload_progress_status')) {
-        $(window.document.body).insert({top: '<div id="upload_progress_status" style="background:red;text-align:right;color:white;font-style:bold;padding:4px"></div>'})
+    // Called when upload started.
+    onStart: function(form) {
+      UploadProgress.handlers.start.call(form)
+    },
+
+    // Called every second by UploadProgress.updater.
+    onUpdate: function(form, status) {
+      UploadProgress.handlers.update.call(form, status)
+    },
+
+    // Called by UploadProgress.done.
+    onFinish: function(form) {
+      UploadProgress.handlers.finish.call(form)
+    },
+
+    // Replace all event handlers.
+    register: function(handlers) {
+      UploadProgress.handlers = handlers
+    },
+
+    handlers: {
+      // Show status indicator.
+      start: function() {
+        Position.prepare()
+        if (!$('upload_progress_status')) {
+          $(window.document.body).insert({top: '<div id="upload_progress_status" style="background:red;text-align:right;color:white;font-style:bold;padding:4px"></div>'})
+        }
+        $('upload_progress_status').setStyle({display: 'block', position: 'absolute', width: 0, top: Position.deltaY + 10 + 'px'})
+        new Effect.Opacity('upload_progress_status', {from: 0.0, to: 0.75})
+      },
+      // Update status indicator.
+      update: function(status) {
+        $('upload_progress_status').innerHTML = status.percentage + "%"
+        Effect.Queues.get('upload_progress').each(function(e){e.cancel()})
+        new Effect.Morph('upload_progress_status', {style: { width: status.percentage + '%'}, duration: 1, queue: {scope: 'upload_progress'}})
+      },
+      // Remove status indicator; called by UploadProgress.done.
+      finish: function() {
+        new Effect.Opacity('upload_progress_status', {from: 0.75, to: 0.0})
       }
-      $('upload_progress_status').setStyle({display: 'block', position: 'absolute', width: 0, top: Position.deltaY + 10 + 'px'})
-
-      new Effect.Opacity('upload_progress_status', {from: 0.0, to: 0.75})
-    },
-
-    // Update status indicator, called every second by UploadProgress.updater.
-    onUpdate: function(status) {
-      $('upload_progress_status').innerHTML = status.percentage + "%"
-      Effect.Queues.get('upload_progress').each(function(e){e.cancel()})
-      new Effect.Morph('upload_progress_status', {style: { width: status.percentage + '%'}, duration: 1, queue: {scope: 'upload_progress'}})
-    },
-
-    // Remove status indicator; called by UploadProgress.done.
-    onFinished: function() {
-      new Effect.Opacity('upload_progress_status', {from: 0.75, to: 0.0})
     }
   }
 
