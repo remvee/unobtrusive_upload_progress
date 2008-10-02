@@ -51,9 +51,10 @@ Add the following to the head section of HTML in your layouts:
 
 == Forms
 
-Simply add the "upload_progress" class to the forms you want to have
-upload progress.  Note the progress bar will kick in when the submit
-takes longer than 2 seconds.
+The provided JavaScript will look for a form with encoding type
++multipart/form-data+ and an input tag of type +file+ inside and
+decorate it to use upload progress.  Note the progress bar will kick
+in when the submit takes longer than 2 seconds.
 
 
 == How does it work?
