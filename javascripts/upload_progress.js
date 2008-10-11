@@ -106,21 +106,27 @@ if (self == self.top) {
       // Show status indicator.
       start: function() {
         Position.prepare()
+
         if (!$('upload_progress_status')) {
-          $(window.document.body).insert({top: '<div id="upload_progress_status" style="background:red;text-align:right;color:white;font-style:bold;padding:4px"></div>'})
+          $(window.document.body).insert({top: '<div id="upload_progress_status" style="'
+                                          + 'display:block;position:absolute;top:0;left:0;'
+                                          + 'width:100%;height:100%;background:white">'
+                                          + '<div style="background:red;height:100%"></div></div>'})
         }
-        $('upload_progress_status').setStyle({display: 'block', position: 'absolute', width: 0, top: Position.deltaY + 10 + 'px'})
+        $('upload_progress_status').down('div').setStyle({width: 0})
+
         new Effect.Opacity('upload_progress_status', {from: 0.0, to: 0.75})
       },
       // Update status indicator.
       update: function(status) {
-        $('upload_progress_status').innerHTML = status.percentage + "%"
+        var bar = $('upload_progress_status').down('div')
+        bar.innerHTML = '<span style="float:right;color:white;font-weight:bold">' + status.percentage + '%</span>'
         Effect.Queues.get('upload_progress').each(function(e){e.cancel()})
-        new Effect.Morph('upload_progress_status', {style: { width: status.percentage + '%'}, duration: 1, queue: {scope: 'upload_progress'}})
+        new Effect.Morph(bar, {style: { width: status.percentage + '%'}, duration: 1, queue: {scope: 'upload_progress'}})
       },
       // Remove status indicator; called by UploadProgress.done.
       finish: function() {
-        new Effect.Opacity('upload_progress_status', {from: 0.75, to: 0.0})
+        $('upload_progress_status').remove()
       }
     }
   }
