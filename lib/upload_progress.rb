@@ -12,9 +12,8 @@ module UploadProgress
   class MonitorHandler < Mongrel::HttpHandler
     def initialize
       @request_notify = true
-
       UploadProgress.monitor_instanciated = true
-      FileUtils.mkdir_p(PROGRESS_DIRECTORY) unless File.directory?(PROGRESS_DIRECTORY)
+      UploadProgress.setup
     end
 
     # Register progress.
@@ -60,6 +59,19 @@ module UploadProgress
       end.each do |fname|
         File.delete(fname)
       end
+    end
+
+    # Setup status directory and spawn sweeper.
+    def setup
+      FileUtils.mkdir_p(PROGRESS_DIRECTORY) unless File.directory?(PROGRESS_DIRECTORY)
+
+      sweeper = Thread.new do
+        loop do
+          cleanup
+          sleep 15.minutes.to_i
+        end
+      end
+      sweeper.priority = -10
     end
 
   private
