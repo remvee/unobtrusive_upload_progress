@@ -1,3 +1,2 @@
 * documentation
-** who to trick mongrel in to slowing down uploads for testing
 ** UploadProgress.cleanup should be cronned (or whatever)

@@ -2,21 +2,31 @@
 
 Upload progress is messy, especially when you want to handle
 validations errors as well.  This plugin aims to provide a transparent
-way to add upload progress to your forms by only adding an extra HTML
-class to a form tag.
+way to add upload progress to your forms.
 
 
 == Unobtrusive
 
-This plugin tries to be as unobstrusive as possible.  It's pretty easy
-to setup; just add two mongrel handlers.  Your forms will not break
-when the progress monitor is't available and uploads still work when
-the user has turned of JavaScript.
+This plugin tries to be as unobtrusive as possible.  It's pretty easy
+to setup; just add two mongrel handlers and include a JavaScript
+library.  Your forms will not break when the progress monitor isn't
+available and uploads still work when the user has turned of
+JavaScript.
 
 
 == Requirements
 
 This plugin depends on prototype.js 1.6 and Mongrel.
+
+
+== Will it work for me?
+
+As long as you deploy your application using Mongrel (or a cluster of
+Mongrels) and your forms are pretty basic (re-rending the same form on
+validation errors, including all error messages inside the form and
+redirecting on success as Rails scaffolding does) this plugin will be
+fine for you.  Otherwise the you'll probably need to tweak some of the
+included JavaScript code.
 
 
 == Installation
@@ -26,56 +36,55 @@ This code is packaged as a Rails plugin;
   ruby script/plugin install git://github.com/remvee/unobtrusive_upload_progress.git
 
 The installation hook will copy a JavaScript file into your
-public/javascripts directory.  I'll need to include it in your views
-using +javascript_include_tag+ or something simular.
+public/javascripts directory.
 
-After installing the plugin you'll need to setup a Mongrel
+
+=== Mongrel configuration
+
+After installing the plugin, you'll need to setup a Mongrel
 configuration script to add the following +uri+ mappings:
 
   uri '/', :handler => ::UploadProgress::MonitorHandler.new, :in_front => true
   uri '/upload_progress', :handler => ::UploadProgress::StatusHandler.new
 
-The first will sit before all request to Rails actions and record
-upload progress when a request comes by which includes the
-+upload_progress_id+ parameter in the query-string (on the URL).  The
-other handler will provide the status of a given +upload_progress_id+
-in JSON format.
+This script should be included using the -S switch when starting
+mongrel_rails or by adding something like:
+
+  config_script: config/mongrel_config.rb
+
+to you mongrel-cluster configuration.
 
 
-== Layout
+=== Layout
 
 Add the following to the head section of HTML in your layouts:
 
   <%= javascript_include_tag 'upload_progress' if UploadProgress.monitor_loaded? %>
 
-
-== Forms
-
-The provided JavaScript will look for a form with encoding type
-+multipart/form-data+ and an input tag of type +file+ inside and
-decorate it to use upload progress.  Note the progress bar will kick
-in when the submit takes longer than 2 seconds.
+The JavaScript library will only be included when the mongrel handlers
+are loaded.
 
 
 == How does it work?
 
 When one of your pages is loaded into the browser, the provided
 JavaScript will look for a form on the page which is a candidate for
-an upload progress bar.  If such a form is found an iframe are added.
-The form is altered slightly by adding an extra parameter with an uniq
-identifier to the form action, setting the form target to the
+an upload progress bar; it has encoding type +multipart/form-data+ and
+an input tag of type +file+.  If such a form is found an iframe is
+added.  The form is altered slightly by adding an extra parameter with
+an unique identifier to the form action, setting the form target to the
 introduced iframe and hooking up a handler to the submit event.
 
 When the user hits the submit button the submit event handler kicks
-off a series of Ajax requests which uses the same identifier as the
-one added to the form action location to fetch the status of the
-upload form the status handler in Mongrel.  These updates are used to
-update the progress bar.
+off a series of Ajax requests which use the same identifier as the one
+added to the form action to fetch the status of the upload form the
+status handler in Mongrel.  These updates are used to update the
+progress bar.
 
 Meanwhile the monitor handler in Mongrel should have detected an
 upload because it saw a request pass with the special parameter.  It
 will record progress for the associated identifier to be served by the
-status handler.
+status handler in JSON format.
 
 When the upload is finished the iframe will be examined.  When the
 location is different than the form action the user submitted, the
@@ -87,14 +96,53 @@ an validation error visible in the form and the form contents
 frame.
 
 
-== Does it work for me?
+== Progress bar customization
 
-As long as you deploy your application using Mongrel (or a cluster of
-Mongrels) and your forms are pretty basic; re-rending the same form on
-validation errors, including all error messages inside the form and
-redirecting on success like Rails scaffolding does, this plugin will
-be fine for you.  Otherwise the you'll probably need to rewrite some
-of the included JavaScript code.
+The default progress bar is probably not what you want but easily
+altered.  The JavaScript library has three callbacks: +start+,
++update+ and +finish+.  The first allows you to make your progress bar
+visible, the second handles updating it and the last removes it again.
+
+Here's a very basic example:
+
+  if (typeof UploadProgress != 'undefined') {
+    UploadProgress.register({
+      start: function() {
+        $('progress').setStyle({display: 'block'})
+      },
+      update: function(status) {
+        $('progress').innerHTML = status.remaining +
+                                  " bytes remaining of " +
+                                  status.total
+      },
+      finish: function() {
+        $('progress').setStyle({display: 'hidden'})
+      }
+    })
+  }
+
+
+== Slowing down Mongrel for testing
+
+Upload progress is nice but in a development environment you probably
+have near to unlimited bandwidth between your browser and your
+application.  Here's a hack to slow down Mongrel:
+
+  class Mongrel::HttpRequest
+    alias _update_request_progress update_request_progress
+    def update_request_progress(*args)
+      sleep 0.5
+      _update_request_progress(*args)
+    end
+  end
+
+Place it in you mongrel_config.rb script temporarily or put:
+
+  if RAILS_ENV == 'development'
+    ..
+  end
+
+around it if you like your Mongrel to encumbered in development mode.
 
 
 Copyright (c) 2008 R.W. van 't Veer, released under the MIT license
