@@ -84,17 +84,20 @@ if (self == self.top) {
 
     // Called when upload started.
     onStart: function(form) {
-      UploadProgress.handlers.start.call(form)
+      if (UploadProgress.handlers.start)
+        UploadProgress.handlers.start.call(form)
     },
 
     // Called every second by UploadProgress.updater.
     onUpdate: function(form, status) {
-      UploadProgress.handlers.update.call(form, status)
+      if (UploadProgress.handlers.update)
+        UploadProgress.handlers.update.call(form, status)
     },
 
     // Called by UploadProgress.done.
     onFinish: function(form) {
-      UploadProgress.handlers.finish.call(form)
+      if (UploadProgress.handlers.finish)
+        UploadProgress.handlers.finish.call(form)
     },
 
     // Replace all event handlers.
