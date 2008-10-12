@@ -96,7 +96,16 @@ an validation error visible in the form and the form contents
 frame.
 
 
-== Progress bar customization
+== Customization
+
+The following parameters can be tweaked:
+
+[UploadProgress.progress_directory] Directory used to store progress information.  Defaults to "RAILS_ROOT/tmp/upload_progress".
+[UploadProgress.sweeper_interval] Interval in seconds for stale progress info sweeper.  Defaults to "1.hour".
+[UploadProgress.param_name] Parameter name used to flag and identify an upload.  *Be careful*, if you change this you'll also need to change the JavaScript library.  Defaults to "upload_progress_id".
+
+
+=== Progress bar
 
 The default progress bar is probably not what you want but easily
 altered.  The JavaScript library has three callbacks: +start+,

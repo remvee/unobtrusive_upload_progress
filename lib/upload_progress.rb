@@ -3,11 +3,8 @@ require 'mongrel'
 require 'activesupport'
 
 module UploadProgress
-  PARAM_NAME = 'upload_progress_id'
-  PROGRESS_DIRECTORY = "#{RAILS_ROOT}/tmp/upload_progress"
-
   # Simple upload progress handler.  Sits before all Rails requests
-  # and registers progress for request with PARAM_NAME in the
+  # and registers progress for request with param_name in the
   # query-string.
   class MonitorHandler < Mongrel::HttpHandler
     def initialize
@@ -18,7 +15,7 @@ module UploadProgress
 
     # Register progress.
     def request_progress(params, remaining, total)
-      if id = Mongrel::HttpRequest.query_parse(params['QUERY_STRING'])[PARAM_NAME]
+      if id = Mongrel::HttpRequest.query_parse(params['QUERY_STRING'])[UploadProgress.param_name]
         UploadProgress.put(id, :remaining => remaining, :total => total)
       end
     end
@@ -35,7 +32,11 @@ module UploadProgress
   end
 
   class << self
-    cattr_accessor :monitor_instanciated
+    cattr_accessor :monitor_instanciated, :param_name, :progress_directory, :sweeper_interval
+
+    self.param_name = 'upload_progress_id'
+    self.progress_directory = "#{RAILS_ROOT}/tmp/upload_progress"
+    self.sweeper_interval = 1.hour
 
     # Returns true when an instance of the monitor handler exists.
     def monitor_loaded?
@@ -54,7 +55,7 @@ module UploadProgress
 
     # Cleanup old statuses.
     def cleanup
-      Dir["#{RAILS_ROOT}/tmp/upload_progress/*"].select do |fname|
+      Dir["#{progress_directory}/*"].select do |fname|
         File.stat(fname).mtime < 1.days.ago
       end.each do |fname|
         File.delete(fname)
@@ -63,20 +64,20 @@ module UploadProgress
 
     # Setup status directory and spawn sweeper.
     def setup
-      FileUtils.mkdir_p(PROGRESS_DIRECTORY) unless File.directory?(PROGRESS_DIRECTORY)
+      FileUtils.mkdir_p(progress_directory) unless File.directory?(progress_directory)
 
       sweeper = Thread.new do
         loop do
           cleanup
-          sleep 15.minutes.to_i
+          sleep sweeper_interval.to_i
         end
       end
-      sweeper.priority = -10
+      sweeper.priority = -1
     end
 
   private
     def upload_status_file(id)
-      File.join(PROGRESS_DIRECTORY, id)
+      File.join(progress_directory, id)
     end
   end
 end
