@@ -64,7 +64,10 @@ module UploadProgress
 
     # Setup status directory and spawn sweeper.
     def setup
-      FileUtils.mkdir_p(progress_directory) unless File.directory?(progress_directory)
+      FileUtils.mkdir_p(progress_directory)
+
+      # Only allow one sweeper to be started.
+      return unless File.new(progress_directory).flock(File::LOCK_EX | File::LOCK_NB)
 
       sweeper = Thread.new do
         loop do
