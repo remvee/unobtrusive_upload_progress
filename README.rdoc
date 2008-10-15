@@ -16,7 +16,10 @@ JavaScript.
 
 == Requirements
 
-This plugin depends on prototype.js 1.6 and Mongrel.
+This plugin depends on Prototype.js 1.6 and Mongrel.  If you're using
+Mongrel Cluster the application tmp directory needs to be on a shared
+volume with flock capability.  This is most likely the case if all your
+Mongrel instances run on the same (Unix-like) machine.
 
 
 == Will it work for me?
