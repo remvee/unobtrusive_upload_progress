@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'mongrel'
-require 'activesupport'
+require 'active_support'
 
 module UploadProgress
   # Simple upload progress handler.  Sits before all Rails requests
